@@ -1,0 +1,2 @@
+yfinance
+fake_useragent
