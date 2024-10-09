@@ -1,6 +1,7 @@
 import random
 import copy
 import numpy as np
+import pandas as pd
 import yfinance as yf
 
 
@@ -16,15 +17,18 @@ class PortfolioOptimizationGA:
         self.population_size = population_size
         self.n_generations = n_generations
         self.period_historical = period_historical
+        self.df_assets = pd.DataFrame()
 
     def get_historical_assets(self):
-        for asset in self.assets:
-            yf_asset = yf.Ticker(asset)
-            yf_asset_hist = yf_asset.history(period=self.period_historical)
-            yf_asset_hist['Daily_Return'] = yf_asset_hist['Close'].pct_change() * 100
+        tickers = yf.Tickers(" ".join(self.assets))
 
-            yf_asset_mean = yf_asset_hist['Daily_Return'].mean()
-            yf_asset_std = yf_asset_hist['Daily_Return'].std()
+        for asset in tickers.tickers.keys():
+            yf_asset_hist = tickers.tickers[asset].history(period=self.period_historical)
+            yf_asset_hist['Daily_Return'] = 1 + yf_asset_hist['Close'].pct_change()
+
+            self.df_assets[asset] = yf_asset_hist['Daily_Return']
+
+        # print(self.df_assets)
 
     def generate_random_individual(self, generation, i):
         rng1 = np.random.default_rng([generation, i])
@@ -58,7 +62,20 @@ class PortfolioOptimizationGA:
         return new_population
 
     def calculate_fitness(self, individual):
-        sharpe_ratio = 0.0
+        exp_ret = np.sum((self.df_assets.mean() * individual) * 252)
+
+        exp_vol = np.sqrt(
+            np.dot(
+                individual.T,
+                np.dot(
+                    self.df_assets.cov() * 252,
+                    individual
+                )
+            )
+        )
+
+        sharpe_ratio = exp_ret / exp_vol
+
         return sharpe_ratio
 
     def sort_population(self, population, population_fitness):
@@ -104,10 +121,7 @@ class PortfolioOptimizationGA:
 
         population, population_fitness = self.sort_population(population, population_fitness)
 
-        best_fitness = population_fitness[0]
-        best_solution = population[0]
-
-        return best_solution, best_fitness
+        return population, population_fitness
 
     def process(self):
         best_fitness_values = []
@@ -115,26 +129,28 @@ class PortfolioOptimizationGA:
 
         generation = 0
         population = self.generate_random_population(generation)
-        best_solution, best_fitness = self.process_generation(generation, population)
-        best_fitness_values.append(best_fitness)
-        best_solutions.append(best_solution)
+        population, population_fitness = self.process_generation(generation, population)
+        best_fitness_values.append(population_fitness[0])
+        best_solutions.append(population[0])
 
         for generation in range(1, self.n_generations):
             print(f"Generating new population at generation {generation}")
             population = self.generate_new_population(population)
 
-            best_solution, best_fitness = self.process_generation(generation, population)
+            population, population_fitness = self.process_generation(generation, population)
 
-            print(f"Generation {generation}: Best fitness = {best_fitness} / Best Solution = {best_solution}")
+            print(f"Generation {generation}: Best fitness = {population_fitness[0]} / Best Solution = {population[0]}")
 
-            best_fitness_values.append(best_fitness)
-            best_solutions.append(best_solution)
-
+            best_fitness_values.append(population_fitness[0])
+            best_solutions.append(population[0])
 
 
 
 if __name__ == "__main__":
-    assets = ['PETR4.SA', 'ITUB4.SA', '^BVSP']
-    portfolio_optimization_ga = PortfolioOptimizationGA(assets, 100, 100, period_historical="2y")
-    # portfolio_optimization_ga.get_historical_assets()
+    assets = ['BPAC11.SA', 'ITUB4.SA', 'BBAS3.SA', 'BPAN4.SA', 'BBDC4.SA']
+    portfolio_optimization_ga = PortfolioOptimizationGA(assets, 100, 5000, period_historical="2y")
+    portfolio_optimization_ga.get_historical_assets()
+
+    # portfolio_optimization_ga.calculate_fitness(portfolio_optimization_ga.generate_random_individual(1, 1))
+
     portfolio_optimization_ga.process()
