@@ -159,7 +159,7 @@ class PortfolioOptimizationGA:
         plt.plot(self.df_benchmark.cumsum(), label=f'Benchmark {self.benchmark}')  # Example benchmark
         plt.xlabel('Date')
         plt.ylabel('Cumulative Returns')
-        plt.title('Backtesting Results')
+        plt.title(f'Backtesting Results {self.assets}')
         plt.legend()
         plt.show()
 
@@ -174,6 +174,7 @@ if __name__ == "__main__":
     # Best fitness = [[0.03155492]] / Best Solution = [0.25 0.02 0.54 0.07 0.12]
     # Best fitness = [[0.03208329]] / Best Solution = [0.28 0.01 0.57 0.12 0.02]
     # Best fitness = [[0.03129325]] / Best Solution = [0.45 0.02 0.48 0.06 0.06]
+    # Best fitness = [[0.03084563]] / Best Solution = [0.22 0.   0.5  0.12 0.24]
 
     portfolio_optimization_ga = PortfolioOptimizationGA(bench, assets, 100, 1000)
     portfolio_optimization_ga.get_historical_assets(start_date, end_date)
