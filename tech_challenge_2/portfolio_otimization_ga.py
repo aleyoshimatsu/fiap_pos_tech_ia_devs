@@ -174,12 +174,14 @@ class PortfolioOptimizationGA:
         portfolio_returns = (self.df_assets
                              * self.best_solutions[-1]).sum(axis=1)
 
-        plt.figure(figsize=(12, 6))
-        plt.plot(portfolio_returns.cumsum(), label=f'Optimized Portfolio {self.best_solutions[-1]}')
-        plt.plot(self.df_benchmark.cumsum(), label=f'Benchmark {self.benchmark}')  # Example benchmark
-        plt.xlabel('Date')
-        plt.ylabel('Cumulative Returns')
-        plt.title(f'Backtesting Results {self.assets}')
+        plt.figure(figsize=(20, 10))
+        plt.plot(portfolio_returns.cumsum(), label=f'Portfolio Otimizado {self.best_solutions[-1]}', linewidth=4)
+        plt.plot(self.df_benchmark.cumsum(), label=f'Benchmark {self.benchmark}', linewidth=4)
+        for asset in self.assets:
+            plt.plot(self.df_assets[asset].cumsum(), label=f'{asset}', linewidth=1)
+        plt.xlabel('Data')
+        plt.ylabel('Retorno Acumulado')
+        plt.title('Resultado Backtesting Portfolio Otimizado')
         plt.legend()
         plt.show()
 
@@ -190,13 +192,18 @@ if __name__ == "__main__":
     end_date = '2024-10-09'
 
     bench = "^BVSP"
-    assets = ['BPAC11.SA', 'ITUB4.SA', 'BBAS3.SA', 'BPAN4.SA', 'BBDC4.SA']
-    # Best fitness = [[0.03155492]] / Best Solution = [0.25 0.02 0.54 0.07 0.12]
-    # Best fitness = [[0.03208329]] / Best Solution = [0.28 0.01 0.57 0.12 0.02]
-    # Best fitness = [[0.03129325]] / Best Solution = [0.45 0.02 0.48 0.06 0.06]
-    # Best fitness = [[0.03084563]] / Best Solution = [0.22 0.   0.5  0.12 0.24]
+    # Carteira Bancos
+    assets = ['BPAC11.SA', 'ITUB4.SA', 'BBAS3.SA', 'BPAN4.SA', 'BBDC4.SA', 'SANB11.SA']
 
-    portfolio_optimization_ga = PortfolioOptimizationGA(bench, assets, 50, 1000, 100)
+    portfolio_optimization_ga = PortfolioOptimizationGA(bench, assets, 10, 500, 100)
+    portfolio_optimization_ga.get_historical_assets(start_date, end_date)
+    portfolio_optimization_ga.process()
+    portfolio_optimization_ga.plot_results()
+
+    # Carteira Diversos Setores
+    assets = ['PETR4.SA', 'ITUB4.SA', 'VALE3.SA', 'ABEV3.SA', 'TAEE11.SA', 'MGLU3.SA', 'CMIG4.SA', 'KLBN4.SA', 'BBDC4.SA', 'BBSE3.SA', 'TRPL4.SA', 'B3SA3.SA']
+
+    portfolio_optimization_ga = PortfolioOptimizationGA(bench, assets, 25, 1000, 100)
     portfolio_optimization_ga.get_historical_assets(start_date, end_date)
     portfolio_optimization_ga.process()
     portfolio_optimization_ga.plot_results()
