@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 class PortfolioOptimizationGA:
 
-    def __init__(self, benchmark, assets, population_size, n_generations, mutation_probability=0.3):
+    def __init__(self, benchmark, assets, population_size, n_generations, n_convergence_stopping_criterion, mutation_probability=0.3):
         if len(assets) < 2:
             raise ValueError("At least two assets are required.")
 
@@ -16,6 +16,7 @@ class PortfolioOptimizationGA:
         self.assets = assets
         self.population_size = population_size
         self.n_generations = n_generations
+        self.n_convergence_stopping_criterion = n_convergence_stopping_criterion
         self.mutation_probability = mutation_probability
         self.df_benchmark = pd.DataFrame()
         self.df_assets = pd.DataFrame()
@@ -55,7 +56,8 @@ class PortfolioOptimizationGA:
         return individual_1, individual_2
 
     def generate_new_population(self, population):
-        new_population = [population[0]]  # ELITISM
+        # Elitism operator
+        new_population = [population[0]]
 
         while len(new_population) < self.population_size:
             # Select parents
@@ -94,8 +96,9 @@ class PortfolioOptimizationGA:
         return sorted_population, sorted_population_fitness
 
     def crossover(self, parent_1, parent_2):
+        # single point crossover
         crossover_point = random.randint(1, len(parent_1) - 1)
-        # Ensure that the slices have the same size
+
         child1 = np.concatenate(
             (parent_1[:crossover_point], parent_2[crossover_point:]))
         child2 = np.concatenate(
@@ -109,6 +112,7 @@ class PortfolioOptimizationGA:
         return child1, child2
 
     def mutate(self, individual):
+        # mutation
         mutated_individual = copy.deepcopy(individual)
 
         n = random.random()
@@ -150,6 +154,22 @@ class PortfolioOptimizationGA:
             self.best_fitness_values.append(population_fitness[0])
             self.best_solutions.append(population[0])
 
+            if self.convergence_stopping_criterion():
+                print(f"Convergence stopping criteria reached at generation {generation}")
+                break
+
+    def convergence_stopping_criterion(self):
+        if len(self.best_fitness_values) > self.n_convergence_stopping_criterion:
+            last_n_fitness_values = np.around(np.mean(self.best_fitness_values[-self.n_convergence_stopping_criterion:]), decimals=6)
+            last_fitness_values = np.around(np.mean(self.best_fitness_values[-1]), decimals=6)
+
+            if last_n_fitness_values == last_fitness_values:
+                return True
+
+        return False
+
+
+
     def plot_results(self):
         portfolio_returns = (self.df_assets
                              * self.best_solutions[-1]).sum(axis=1)
@@ -176,7 +196,7 @@ if __name__ == "__main__":
     # Best fitness = [[0.03129325]] / Best Solution = [0.45 0.02 0.48 0.06 0.06]
     # Best fitness = [[0.03084563]] / Best Solution = [0.22 0.   0.5  0.12 0.24]
 
-    portfolio_optimization_ga = PortfolioOptimizationGA(bench, assets, 100, 1000)
+    portfolio_optimization_ga = PortfolioOptimizationGA(bench, assets, 50, 1000, 100)
     portfolio_optimization_ga.get_historical_assets(start_date, end_date)
     portfolio_optimization_ga.process()
     portfolio_optimization_ga.plot_results()
