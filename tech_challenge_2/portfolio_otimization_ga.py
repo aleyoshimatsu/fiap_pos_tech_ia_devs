@@ -7,6 +7,15 @@ import matplotlib.pyplot as plt
 
 
 class PortfolioOptimizationGA:
+    """
+    Tech Challenge - Fase 2
+
+    Grupo 22
+
+    Integrantes do Grupo
+    * Matheus Alves da Silva - matheusa761@gmail.com
+    * Alexandre Pantalena Yoshimatsu - alexandre.yoshimatsu@virgo.inc
+    """
 
     def __init__(self, benchmark, assets, population_size, n_generations, n_convergence_stopping_criterion, mutation_probability=0.3):
         if len(assets) < 2:
