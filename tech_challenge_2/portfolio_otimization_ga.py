@@ -115,10 +115,10 @@ class PortfolioOptimizationGA:
         w = np.asmatrix(individual)
         c = np.asmatrix(self.df_assets.cov())
 
-        mu = w * p.T # expected return
-        sigma = np.sqrt(w * c * w.T) # standard deviation of portfolio
+        mu = w * p.T # Expected return
+        sigma = np.sqrt(w * c * w.T) # Standard deviation of portfolio
 
-        sharpe_ratio = mu / sigma
+        sharpe_ratio = mu / sigma # Sharpe ratio compares the return of an investment with its risk
 
         return sharpe_ratio
 
