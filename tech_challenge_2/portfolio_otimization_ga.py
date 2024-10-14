@@ -118,7 +118,7 @@ class PortfolioOptimizationGA:
         mu = w * p.T # Expected return
         sigma = np.sqrt(w * c * w.T) # Standard deviation of portfolio
 
-        sharpe_ratio = mu / sigma # Sharpe ratio compares the return of an investment with its risk
+        sharpe_ratio = mu / sigma # Sharpe ratio compares the return of an investment with its risk (Index)
 
         return sharpe_ratio
 
