@@ -26,7 +26,14 @@ class HandGesture:
     def analyze_gesture(self, frame):
         frame_RGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.hands.process(frame_RGB)
-        print(results)
+
+        if results.multi_hand_landmarks:
+            for hand in results.multi_hand_landmarks:
+                for id, lm in enumerate(hand.landmark):
+                    height, width, channels = frame.shape
+                    center_x, center_y = int(lm.x * width), int(lm.y * height)
+
+                self.mp_draw.draw_landmarks(frame, hand, self.mp_hands.HAND_CONNECTIONS)
 
         # TODO implementation
 
