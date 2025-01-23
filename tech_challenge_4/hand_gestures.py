@@ -7,7 +7,7 @@ from mediapipe.framework.formats import landmark_pb2
 
 
 
-class HandGesture2:
+class HandGesture:
 
     MARGIN = 10  # pixels
     FONT_SIZE = 1
