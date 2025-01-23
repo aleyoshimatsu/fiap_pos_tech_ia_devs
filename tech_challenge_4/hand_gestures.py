@@ -4,7 +4,7 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from mediapipe.framework.formats import landmark_pb2
 
-from tech_challenge_4.body_mediapipe import VisionRunningMode
+
 
 
 class HandGesture2:
@@ -20,10 +20,11 @@ class HandGesture2:
         self.mp_hands = mp.solutions.hands
         self.mp_drawing = mp.solutions.drawing_utils
         self.mp_drawing_styles = mp.solutions.drawing_styles
+        self.mp_running_mode = mp.tasks.vision.RunningMode
 
         self.base_options = python.BaseOptions(model_asset_path='gesture_recognizer.task')
         self.options = vision.GestureRecognizerOptions(base_options=self.base_options,
-                                                       running_mode=VisionRunningMode.LIVE_STREAM,
+                                                       running_mode=self.mp_running_mode.LIVE_STREAM,
                                                        num_hands=2,
                                                        result_callback=self.print_result)
         self.recognizer = vision.GestureRecognizer.create_from_options(self.options)
