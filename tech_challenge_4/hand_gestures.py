@@ -30,7 +30,7 @@ class HandGesture:
         self.recognizer = vision.GestureRecognizer.create_from_options(self.options)
         self.results = None
         self.timestamp = 0
-        self.alpha = 0.5
+        self.alpha = 0.7
         self.overlay_video = None
         self.overlay_cap = None
         self.overlay_active = False
