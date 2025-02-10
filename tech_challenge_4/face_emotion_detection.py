@@ -3,7 +3,7 @@ import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from mediapipe.framework.formats import landmark_pb2
-
+from deepface import DeepFace
 
 
 
@@ -37,13 +37,14 @@ class FaceEmotionDetection:
         self.overlay_cap = None
         self.overlay_active = False
 
+        # Angry	Disgust	Fear	Happy	Sad	Surprise	Neutral
         self.emotions_videos = {
-            "Victory": "videos/fireworks.mov",
-            "Thumb_Up": "videos/thumbs_up.mp4",
-            "Thumb_Down": "videos/thumbs_down.mov",
-            "Closed_Fist": "videos/light-rain.mp4",
-            "Pointing_Up": "videos/balloons.mov",
-            "ILoveYou": "videos/red-hearts.mov",
+            "happy": "videos/fireworks.mov",
+            # "Thumb_Up": "videos/thumbs_up.mp4",
+            # "sad": "videos/thumbs_down.mov",
+            # "fear": "videos/light-rain.mp4",
+            "surprise": "videos/balloons.mov",
+            # "ILoveYou": "videos/red-hearts.mov",
         }
 
     def print_result(self, result, output_image: mp.Image, timestamp_ms: int):
@@ -115,13 +116,21 @@ class FaceEmotionDetection:
 
             for idx in range(len(face_landmarks_list)):
                 face_landmarks = face_landmarks_list[idx]
-                print(face_landmarks)
+                # print(face_landmarks)
 
                 face_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
                 face_landmarks_proto.landmark.extend([
                     landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in
                     face_landmarks
                 ])
+
+                # 'age', 'gender', 'race', 'emotion'
+                result = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False)
+                # dominant_emotion = result['dominant_emotion']
+                # print(result)
+                if len(result) > 0:
+                    main_emotion = result[0]['dominant_emotion']
+                    print(main_emotion)
 
                 if draw_landmarks:
                     self.mp_drawing.draw_landmarks(
