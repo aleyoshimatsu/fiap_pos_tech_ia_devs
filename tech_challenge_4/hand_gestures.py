@@ -71,9 +71,9 @@ class HandGesture:
 
             if success:
 
-                frame_processed, main_gesture = self.analyze_gesture(frame)
-
                 if not self.overlay_active:
+                    frame_processed, main_gesture = self.analyze_gesture(frame)
+
                     if main_gesture and main_gesture in self.gestures_videos.keys():
                         self.load_overlay(self.gestures_videos[main_gesture])
                 else:

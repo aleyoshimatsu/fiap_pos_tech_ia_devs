@@ -74,9 +74,9 @@ class FaceEmotionDetection:
 
             if success:
 
-                frame_processed, main_emotion = self.analyze_face(frame)
-
                 if not self.overlay_active:
+                    frame_processed, main_emotion = self.analyze_face(frame)
+
                     if main_emotion and main_emotion in self.emotions_videos.keys():
                         self.load_overlay(self.emotions_videos[main_emotion])
                 else:
