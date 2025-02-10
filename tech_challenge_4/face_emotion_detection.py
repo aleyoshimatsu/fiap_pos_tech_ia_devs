@@ -41,8 +41,8 @@ class FaceEmotionDetection:
         self.emotions_videos = {
             "happy": "videos/fireworks.mov",
             # "Thumb_Up": "videos/thumbs_up.mp4",
-            # "sad": "videos/thumbs_down.mov",
-            # "fear": "videos/light-rain.mp4",
+            "sad": "videos/thumbs_down.mov",
+            "fear": "videos/light-rain.mp4",
             "surprise": "videos/balloons.mov",
             # "ILoveYou": "videos/red-hearts.mov",
         }
