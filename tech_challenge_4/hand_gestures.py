@@ -3,12 +3,13 @@ import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from mediapipe.framework.formats import landmark_pb2
-
-
+import json
+import os
+import pandas as pd
+from datetime import datetime
 
 
 class HandGesture:
-
     MARGIN = 10  # pixels
     FONT_SIZE = 1
     FONT_THICKNESS = 1
@@ -35,13 +36,19 @@ class HandGesture:
         self.overlay_cap = None
         self.overlay_active = False
 
+        self.gesture_log = []
+
+        self.script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.json_path = os.path.join(self.script_dir, "detected_gestures.json")
+        self.csv_path = os.path.join(self.script_dir, "detected_gestures.csv")
+
         self.gestures_videos = {
-            "Victory": "videos/fireworks.mov",
-            "Thumb_Up": "videos/thumbs_up.mp4",
-            "Thumb_Down": "videos/thumbs_down.mov",
-            "Closed_Fist": "videos/light-rain.mp4",
-            "Pointing_Up": "videos/balloons.mov",
-            "ILoveYou": "videos/red-hearts.mov",
+            "Victory": "videos/fireworks_acelerado.mp4.crdownload",
+            "Thumb_Up": "videos/thumbs_up_acelerado.mp4.crdownload",
+            "Thumb_Down": "videos/thumbs_down_acelerado.mp4.crdownload",
+            "Closed_Fist": "videos/chuva_acelerada.mp4.crdownload",
+            "Pointing_Up": "videos/baloes_acelerado.mp4.crdownload",
+            "ILoveYou": "videos/red_hearts_acelerado.mp4.crdownload",
         }
 
     def print_result(self, result, output_image: mp.Image, timestamp_ms: int):
@@ -89,6 +96,9 @@ class HandGesture:
             else:
                 break
 
+        self.save_gestures_to_json()
+        self.convert_json_to_csv()
+
     def add_overlay(self, frame, frame_processed):
         if self.overlay_active and self.overlay_cap.isOpened():
             ret_overlay, overlay_frame = self.overlay_cap.read()
@@ -114,9 +124,6 @@ class HandGesture:
             handedness_list = self.results.handedness
 
             for hand, gesture, handedness in zip(hand_landmarks, gestures, handedness_list):
-                print(hand)
-                print(gesture)
-                print(handedness)
 
                 hand_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
                 hand_landmarks_proto.landmark.extend([
@@ -125,6 +132,11 @@ class HandGesture:
 
                 if gesture and len(gesture) > 0:
                     main_gesture = gesture[0].category_name
+                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+                    # Adiciona o gesto detectado à lista
+                    self.gesture_log.append({"timestamp": timestamp, "gesture": main_gesture})
+                    print(f"Gesture detected: {main_gesture} at {timestamp}")
 
                 if draw_landmarks:
                     self.mp_drawing.draw_landmarks(
@@ -134,17 +146,21 @@ class HandGesture:
                         self.mp_drawing_styles.get_default_hand_landmarks_style(),
                         self.mp_drawing_styles.get_default_hand_connections_style())
 
-                    # height, width, _ = frame.shape
-                    # x_coordinates = [landmark.x for landmark in hand]
-                    # y_coordinates = [landmark.y for landmark in hand]
-                    # text_x = int(min(x_coordinates) * width)
-                    # text_y = int(min(y_coordinates) * height) - self.MARGIN
-                    #
-                    # cv2.putText(frame, f"{handedness[0].category_name} Hand - {gesture[0].category_name}",
-                    #             (text_x, text_y), cv2.FONT_HERSHEY_DUPLEX,
-                    #             self.FONT_SIZE, self.TEXT_COLOR, self.FONT_THICKNESS, cv2.LINE_AA)
-
         return frame, main_gesture
+
+    def save_gestures_to_json(self):
+        with open(self.json_path, 'w') as json_file:
+            json.dump(self.gesture_log, json_file, indent=4)
+        print(f"Gestures saved to JSON: {self.json_path}")
+
+    def convert_json_to_csv(self):
+        if os.path.exists(self.json_path):
+            with open(self.json_path, 'r') as json_file:
+                data = json.load(json_file)
+
+            df = pd.DataFrame(data)
+            df.to_csv(self.csv_path, index=False)
+            print(f"Gestures converted to CSV: {self.csv_path}")
 
     def __del__(self):
         self.capture.release()

@@ -4,11 +4,13 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from mediapipe.framework.formats import landmark_pb2
 from deepface import DeepFace
-
+import json
+import os
+import pandas as pd
+from datetime import datetime
 
 
 class FaceEmotionDetection:
-
     MARGIN = 10  # pixels
     FONT_SIZE = 1
     FONT_THICKNESS = 1
@@ -37,13 +39,19 @@ class FaceEmotionDetection:
         self.overlay_cap = None
         self.overlay_active = False
 
-        # Angry	Disgust	Fear	Happy	Sad	Surprise	Neutral
+        self.emotion_log = []
+
+        self.script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.json_path = os.path.join(self.script_dir, "detected_emotions.json")
+        self.csv_path = os.path.join(self.script_dir, "detected_emotions.csv")
+
+        # Angry	Disgust	Fear	Happy	Sad	Surprise	Neutralq
         self.emotions_videos = {
-            "happy": "videos/fireworks.mov",
+            "happy": "videos/fireworks_acelerado.mp4.crdownload",
             # "Thumb_Up": "videos/thumbs_up.mp4",
-            "sad": "videos/thumbs_down.mov",
-            "fear": "videos/light-rain.mp4",
-            "surprise": "videos/balloons.mov",
+            "sad": "videos/thumbs_down_acelerado.mp4.crdownload",
+            "fear": "videos/chuva_acelerada.mp4.crdownload",
+            "surprise": "videos/baloes_acelerado.mp4.crdownload",
             # "ILoveYou": "videos/red-hearts.mov",
         }
 
@@ -92,6 +100,9 @@ class FaceEmotionDetection:
             else:
                 break
 
+        self.save_emotions_to_json()
+        self.convert_json_to_csv()
+
     def add_overlay(self, frame, frame_processed):
         if self.overlay_active and self.overlay_cap.isOpened():
             ret_overlay, overlay_frame = self.overlay_cap.read()
@@ -130,7 +141,11 @@ class FaceEmotionDetection:
                 # print(result)
                 if len(result) > 0:
                     main_emotion = result[0]['dominant_emotion']
-                    print(main_emotion)
+                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+                    # Salva emoção detectada na lista
+                    self.emotion_log.append({"timestamp": timestamp, "emotion": main_emotion})
+                    print(f"Emotion detected: {main_emotion} at {timestamp}")
 
                 if draw_landmarks:
                     self.mp_drawing.draw_landmarks(
@@ -153,6 +168,20 @@ class FaceEmotionDetection:
                         connection_drawing_spec=self.mp_drawing_styles.get_default_face_mesh_iris_connections_style())
 
         return frame, main_emotion
+
+    def save_emotions_to_json(self):
+        with open(self.json_path, 'w') as json_file:
+            json.dump(self.emotion_log, json_file, indent=4)
+        print(f"Emotions saved to JSON: {self.json_path}")
+
+    def convert_json_to_csv(self):
+        if os.path.exists(self.json_path):
+            with open(self.json_path, 'r') as json_file:
+                data = json.load(json_file)
+
+            df = pd.DataFrame(data)
+            df.to_csv(self.csv_path, index=False)
+            print(f"Emotions converted to CSV: {self.csv_path}")
 
     def __del__(self):
         self.capture.release()
