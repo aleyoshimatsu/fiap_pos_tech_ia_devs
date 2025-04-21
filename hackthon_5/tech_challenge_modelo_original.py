@@ -7,9 +7,9 @@ import time
 
 EMAIL_USER = "gdtavares1@gmail.com"
 EMAIL_PASS = ""
-EMAIL_TO   = ["gdtavares1@gmail.com", "Matheusa761@gmail.com"]
+EMAIL_TO   = ["gdtavares1@gmail.com"]
 
-ALERT_COOLDOWN = 2
+ALERT_COOLDOWN = 10
 
 def send_alert(frame, label):
     fd, path = tempfile.mkstemp(suffix=".jpg")
@@ -25,7 +25,7 @@ def send_alert(frame, label):
     os.remove(path)
 
 def run_detection(source):
-    model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+    model = torch.hub.load('ultralytics/yolov5', 'yolov5m', pretrained=True)
     sharp = ['knife', 'scissors']
     cap = cv2.VideoCapture(source)
     if not cap.isOpened():
