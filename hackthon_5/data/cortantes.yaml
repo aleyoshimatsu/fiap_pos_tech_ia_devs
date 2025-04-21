@@ -1,0 +1,5 @@
+train: /Users/guilhermetavares/PythonVirgo/fiap_tech_challenge/fiap_pos_tech_ia_devs/hackthon_5/data/cortantes/images/train
+val:   /Users/guilhermetavares/PythonVirgo/fiap_tech_challenge/fiap_pos_tech_ia_devs/hackthon_5/data/cortantes/images/val
+
+nc: 2
+names: ['Faca','Tesoura']
