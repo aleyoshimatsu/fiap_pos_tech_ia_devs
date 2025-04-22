@@ -21,7 +21,7 @@ class Detector:
     def __init__(self, fonte=0):
         self.capture = cv2.VideoCapture(fonte)
 
-    def _send_alert_worker(frame, label):
+    def _send_alert_worker(self, frame, label):
         # salva o frame em arquivo temporário
         fd, path = tempfile.mkstemp(suffix=".jpg")
         os.close(fd)
