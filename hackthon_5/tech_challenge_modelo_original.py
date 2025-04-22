@@ -11,7 +11,7 @@ EMAIL_PASS     = "dmsu ucke axcy pxtn"
 EMAIL_TO       = ["gdtavares1@gmail.com"]
 ALERT_COOLDOWN = 10       # segundos entre alertas
 
-MODEL_NAME     = 'yolov5x6'   # modelo maior, mais preciso
+MODEL_NAME     = 'yolov5l'   # modelo maior, mais preciso
 CONF_THRESHOLD = 0.1          # confiança mínima (10%)
 IOU_THRESHOLD  = 0.2          # NMS IoU threshold
 IMG_SCALE      = 1280         # largura em px para redimensionar antes da inferência
@@ -68,64 +68,61 @@ class Detector:
 
         while self.capture.isOpened():
             success, frame = self.capture.read()
-
             frame_idx += 1
-
             if success:
+                self.detect_frame(frame, frame_idx, last_alert_time, model)
 
-                if frame_idx % DETECT_INTERVAL == 0:
-                    h, w = frame.shape[:2]
-                    new_h = int(h * IMG_SCALE / w)
-                    small = cv2.resize(frame, (IMG_SCALE, new_h))
-
-                    lab = cv2.cvtColor(small, cv2.COLOR_BGR2LAB)
-                    l, a, b = cv2.split(lab)
-                    cl = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(l)
-                    small_enhanced = cv2.cvtColor(cv2.merge([cl, a, b]), cv2.COLOR_LAB2BGR)
-
-                    results = model(small_enhanced)
-                    df = results.pandas().xyxy[0]
-
-                    print(f"[DEBUG] Frame {frame_idx}: {len(df)} detecções")
-
-                    fx = w / small.shape[1]
-                    fy = h / small.shape[0]
-
-                    detections = []
-                    now = time.time()
-                    for _, r in df.iterrows():
-                        if r['name'] in TARGET_NAMES:
-                            x1 = int(r.xmin * fx)
-                            y1 = int(r.ymin * fy)
-                            x2 = int(r.xmax * fx)
-                            y2 = int(r.ymax * fy)
-                            conf = r['confidence']
-                            detections.append((x1, y1, x2, y2, r['name'], conf))
-                            # envia alerta para a primeira detectada no frame
-                            if now - last_alert_time >= ALERT_COOLDOWN:
-                                label = f"{r['name']} {conf:.2f}"
-                                self.send_alert(frame.copy(), label)
-                                last_alert_time = now
-                                break
-                else:
-                    pass
-
-                for x1, y1, x2, y2, name, conf in locals().get('detections', []):
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                    cv2.putText(
-                        frame, f"{name} {conf:.2f}",
-                        (x1, y1 - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2
-                    )
-
-
-                cv2.imshow('Detecção de Objetos Cortantes', frame)
+                cv2.imshow('Deteccao de Objetos Cortantes', frame)
 
                 # Press Q to exit
                 if cv2.waitKey(25) & 0xFF == ord('q'):
                     break
             else:
                 break
+
+    def detect_frame(self, frame, frame_idx, last_alert_time, model):
+        if frame_idx % DETECT_INTERVAL == 0:
+            h, w = frame.shape[:2]
+            new_h = int(h * IMG_SCALE / w)
+            small = cv2.resize(frame, (IMG_SCALE, new_h))
+
+            lab = cv2.cvtColor(small, cv2.COLOR_BGR2LAB)
+            l, a, b = cv2.split(lab)
+            cl = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(l)
+            small_enhanced = cv2.cvtColor(cv2.merge([cl, a, b]), cv2.COLOR_LAB2BGR)
+
+            results = model(small_enhanced)
+            df = results.pandas().xyxy[0]
+
+            print(f"[DEBUG] Frame {frame_idx}: {len(df)} detecções")
+
+            fx = w / small.shape[1]
+            fy = h / small.shape[0]
+
+            detections = []
+            now = time.time()
+            for _, r in df.iterrows():
+                if r['name'] in TARGET_NAMES:
+                    x1 = int(r.xmin * fx)
+                    y1 = int(r.ymin * fy)
+                    x2 = int(r.xmax * fx)
+                    y2 = int(r.ymax * fy)
+                    conf = r['confidence']
+                    detections.append((x1, y1, x2, y2, r['name'], conf))
+                    # envia alerta para a primeira detectada no frame
+                    if now - last_alert_time >= ALERT_COOLDOWN:
+                        label = f"{r['name']} {conf:.2f}"
+                        self.send_alert(frame.copy(), label)
+                        last_alert_time = now
+                        break
+
+        for x1, y1, x2, y2, name, conf in locals().get('detections', []):
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv2.putText(
+                frame, f"{name} {conf:.2f}",
+                (x1, y1 - 10),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2
+            )
 
     def __del__(self):
         self.capture.release()
